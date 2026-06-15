@@ -990,6 +990,7 @@ flex-grow: 1;
 .status-badge.present { background: #E6F4EA; color: #137333; border: 1px solid #CEEAD6; }
 .status-badge.absent { background: #FCE8E6; color: #C5221F; border: 1px solid #FAD2CF; }
 .status-badge.late { background: #FEF7E0; color: #B06000; border: 1px solid #FEEFC3; }
+.status-badge.late-present { background: linear-gradient(90deg, #FFF9C4 50%, #E6F4EA 50%); color: #B08D00; border: 1px solid #FEEFC3; }
 .status-badge.halfday { background: #E8F0FE; color: #1967D2; border: 1px solid #D2E3FC; }
 
 /* ========================================

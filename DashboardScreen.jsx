@@ -370,7 +370,7 @@ const DashboardScreen = () => {
     
     let matchesStatus = true;
     const s = staff.status || 'Pending';
-    if (s === 'Present' || s === 'Half Day' || s === 'Late') {
+    if (s === 'Present' || s === 'Half Day' || s === 'Late' || s === 'Late / Present') {
       matchesStatus = filterPresent;
     } else if (s === 'Absent') {
       matchesStatus = filterAbsent;
@@ -386,7 +386,7 @@ const DashboardScreen = () => {
     present: filteredData.filter(s => s.status === 'Present').length,
     absent: filteredData.filter(s => s.status === 'Absent').length,
     halfDay: filteredData.filter(s => s.status === 'Half Day').length,
-    late: filteredData.filter(s => s.status === 'Late').length,
+    late: filteredData.filter(s => s.status === 'Late' || s.status === 'Late / Present').length,
     paidLeave: filteredData.filter(s => s.status === 'Paid Leave').length,
     site: filteredData.filter(s => s.status === 'Site').length,
     otMins: 0,
@@ -538,7 +538,7 @@ const DashboardScreen = () => {
       if (s.status === 'Present') { stats[key].p++; }
       else if (s.status === 'Absent') { stats[key].a++; }
       else if (s.status === 'Half Day') { stats[key].p++; stats[key].hd++; }
-      else if (s.status === 'Late') { stats[key].p++; stats[key].l++; }
+      else if (s.status === 'Late' || s.status === 'Late / Present') { stats[key].p++; stats[key].l++; }
       else { stats[key].nm++; }
     });
     return Object.values(stats);
@@ -757,7 +757,7 @@ const DashboardScreen = () => {
   const totalDeduction = salaryTransactions.filter(t => t.type === 'Deduction').reduce((sum, t) => sum + Number(t.amount || 0), 0);
 
   // Dynamic Metrics Calculation
-  const presentCount = dailyStaffData.filter(s => s.status === 'Present' || s.status === 'Late' || (s.in && s.in !== '-')).length;
+  const presentCount = dailyStaffData.filter(s => s.status === 'Present' || s.status === 'Late' || s.status === 'Late / Present' || (s.in && s.in !== '-')).length;
   const absentCount = dailyStaffData.filter(s => s.status === 'Absent').length;
   const halfDayCount = dailyStaffData.filter(s => s.status === 'Half Day').length;
   const onLeaveCount = dailyStaffData.filter(s => s.status === 'On Leave').length;
@@ -1086,7 +1086,7 @@ const DashboardScreen = () => {
                           { name: 'Present', value: summaryMetrics.present || 0, color: '#34A853' },
                           { name: 'Absent', value: summaryMetrics.absent || 0, color: '#EA4335' },
                           { name: 'Half Day', value: summaryMetrics.halfDay || 0, color: '#4285F4' },
-                          { name: 'Late', value: summaryMetrics.late || 0, color: '#F2994A' },
+                          { name: 'Late', value: summaryMetrics.late || 0, color: '#FFC107' },
                           { name: 'Paid Leave', value: summaryMetrics.paidLeave || 0, color: '#4285F4' },
                           { name: 'Site', value: summaryMetrics.site || 0, color: '#9C27B0' }
                         ].filter(d => d.value > 0)}
@@ -1197,8 +1197,9 @@ const DashboardScreen = () => {
                                 borderRadius: '12px', 
                                 fontSize: '12px', 
                                 fontWeight: '500',
-                                backgroundColor: staff.status === 'Present' ? '#E6F4EA' : '#FCE8E6',
-                                color: staff.status === 'Present' ? '#1E8E3E' : '#D93025'
+                                backgroundColor: staff.status === 'Late / Present' ? '#fff9c4' : (staff.status === 'Present' ? '#E6F4EA' : (staff.status === 'Late' ? '#FFF9C4' : '#FCE8E6')),
+                                background: staff.status === 'Late / Present' ? 'linear-gradient(90deg, #FFF9C4 50%, #E6F4EA 50%)' : undefined,
+                                color: staff.status === 'Present' ? '#1E8E3E' : (staff.status === 'Late' || staff.status === 'Late / Present' ? '#B08D00' : '#D93025')
                               }}>
                                 {typeof staff.status === 'object' ? '' : (staff.status || 'Pending')}
                               </span>
@@ -2744,7 +2745,11 @@ const DashboardScreen = () => {
                     {filteredData.map((staff, idx) => (
                       <tr key={idx} style={{ borderBottom: '1px solid #e0e0e0' }}>
                         <td style={{ padding: '16px', color: '#202124', fontWeight: '500' }}>{staff.name}</td>
-                        <td style={{ padding: '16px', color: staff.status === 'Present' ? '#188038' : staff.status === 'Absent' ? '#d93025' : '#5f6368', fontWeight: '600' }}>{staff.status}</td>
+                        <td style={{ padding: '16px', color: staff.status === 'Present' ? '#188038' : staff.status === 'Absent' ? '#d93025' : (staff.status === 'Late' || staff.status === 'Late / Present') ? '#B08D00' : '#5f6368', fontWeight: '600' }}>
+                          {staff.status === 'Late / Present' ? (
+                            <span style={{ background: 'linear-gradient(90deg, #FFF9C4 50%, #E6F4EA 50%)', padding: '4px 8px', borderRadius: '4px' }}>{staff.status}</span>
+                          ) : staff.status}
+                        </td>
                         <td style={{ padding: '16px', color: '#5f6368' }}>{staff.in}</td>
                         <td style={{ padding: '16px', color: '#5f6368' }}>{staff.out}</td>
                       </tr>
@@ -4177,7 +4182,7 @@ const DashboardScreen = () => {
                           </div>
                         </td>
                         <td style={{ padding: '16px 24px' }}>
-                          <span className={`status-badge ${s.status === 'Present' ? 'present' : s.status === 'Absent' ? 'absent' : s.status === 'Half Day' ? 'halfday' : s.status === 'Late' ? 'late' : 'not-marked'}`} style={{fontWeight: 'bold'}}>
+                          <span className={`status-badge ${s.status === 'Present' ? 'present' : s.status === 'Absent' ? 'absent' : s.status === 'Half Day' ? 'halfday' : s.status === 'Late' ? 'late' : s.status === 'Late / Present' ? 'late-present' : 'not-marked'}`} style={{fontWeight: 'bold'}}>
                             {s.status}
                           </span>
                         </td>
@@ -5431,9 +5436,9 @@ const DashboardScreen = () => {
           <div className="drawer-list">
             {dailyStaffData
               .filter(s => {
-                if (drawerType === 'present') return s.status === 'Present' || s.status === 'Late' || (s.in && s.in !== '-');
+                if (drawerType === 'present') return s.status === 'Present' || s.status === 'Late' || s.status === 'Late / Present' || (s.in && s.in !== '-');
                 if (drawerType === 'absent') return s.status === 'Absent';
-                if (drawerType === 'late') return s.status === 'Late';
+                if (drawerType === 'late') return s.status === 'Late' || s.status === 'Late / Present';
                 if (drawerType === 'halfDay') return s.status === 'Half Day';
                 if (drawerType === 'onLeave') return s.status === 'On Leave';
                 if (drawerType === 'site') return s.status === 'Site';
@@ -5456,9 +5461,9 @@ const DashboardScreen = () => {
                 </div>
               ))}
             {dailyStaffData.filter(s => {
-                if (drawerType === 'present') return s.status === 'Present' || s.status === 'Late' || (s.in && s.in !== '-');
+                if (drawerType === 'present') return s.status === 'Present' || s.status === 'Late' || s.status === 'Late / Present' || (s.in && s.in !== '-');
                 if (drawerType === 'absent') return s.status === 'Absent';
-                if (drawerType === 'late') return s.status === 'Late';
+                if (drawerType === 'late') return s.status === 'Late' || s.status === 'Late / Present';
                 if (drawerType === 'halfDay') return s.status === 'Half Day';
                 if (drawerType === 'onLeave') return s.status === 'On Leave';
                 if (drawerType === 'site') return s.status === 'Site';
